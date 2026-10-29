@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>おとをならそう！ミニゲーム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #fff9c4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        h1 {
+            font-size: 26px;
+            margin-bottom: 5px;
+            color: #2e7d32;
+            text-align: center;
+        }
+        p.description {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        /* 8個のボタンを綺麗に配置するグリッドレイアウト（4列×2行） */
+        .sound-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 820px;
+            padding: 0 15px;
+        }
+        @media (max-width: 768px) {
+            .sound-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .sound-btn {
+            background-color: #ffffff;
+            border: 3px solid #81c784;
+            border-radius: 24px;
+            padding: 20px;
+            width: 150px;
+            height: 150px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .sound-btn:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            background-color: #f1f8e9;
+        }
+        .sound-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .icon {
+            font-size: 44px;
+            margin-bottom: 8px;
+        }
+        .label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .status {
+            font-size: 11px;
+            color: #e65100;
+            margin-top: 4px;
+            height: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✨ おとをならそう！ミニゲーム ✨</h1>
+    <p class="description">ボタンを押すと音が流れるよ。<br>もう一度押すとすぐに止まるよ！複数の音を重ねることもできるよ♪</p>
+
+    <div class="sound-container">
+        <!-- 1. かわ -->
+        <button class="sound-btn" onclick="toggleSound('かわ.mp3', this)">
+            <span class="icon">💧</span>
+            <span class="label">かわ</span>
+            <span class="status"></span>
+        </button>
+        <!-- 2. うみ -->
+        <button class="sound-btn" onclick="toggleSound('うみ.mp3', this)">
+            <span class="icon">🌊</span>
+            <span class="label">うみ</span>
+            <span class="status"></span>
+        </button>
+        <!-- 3. はなび -->
+        <button class="sound-btn" onclick="toggleSound('はなび.mp3', this)">
+            <span class="icon">🎆</span>
+            <span class="label">はなび</span>
+            <span class="status"></span>
+        </button>
+        <!-- 4. なつ (旧セミ) -->
+        <button class="sound-btn" onclick="toggleSound('なつ.mp3', this)">
+            <span class="icon">☀️</span>
+            <span class="label">なつ</span>
+            <span class="status"></span>
+        </button>
+        <!-- 5. かみなり -->
+        <button class="sound-btn" onclick="toggleSound('かみなり.mp3', this)">
+            <span class="icon">⚡</span>
+            <span class="label">かみなり</span>
+            <span class="status"></span>
+        </button>
+        <!-- 6. コオロギ -->
+        <button class="sound-btn" onclick="toggleSound('コオロギ.mp3', this)">
+            <span class="icon">🦗</span>
+            <span class="label">コオロギ</span>
+            <span class="status"></span>
+        </button>
+        <!-- 7. あめ -->
+        <button class="sound-btn" onclick="toggleSound('あめ.mp3', this)">
+            <span class="icon">🌧️</span>
+            <span class="label">あめ</span>
+            <span class="status"></span>
+        </button>
+        <!-- 8. ふぶき -->
+        <button class="sound-btn" onclick="toggleSound('ふぶき.mp3', this)">
+            <span class="icon">❄️</span>
+            <span class="label">ふぶき</span>
+            <span class="status"></span>
+        </button>
+    </div>
+
+    <script>
+        // 再生中の音声やタイマーを管理するオブジェクト
+        const activeAudios = {};
+        const activeTimers = {};
+
+        function toggleSound(filename, buttonElement) {
+            const statusEl = buttonElement.querySelector('.status');
+
+            // すでにこのボタンの音が鳴っている場合は、直ちに停止する
+            if (activeAudios[filename]) {
+                stopSound(filename, statusEl);
+                return;
+            }
+
+            // 新しく音を再生する（他の音と同時に鳴らせます）
+            const audio = new Audio(filename);
+            audio.loop = true; // 10秒間途切れないようにループ
+            activeAudios[filename] = audio;
+
+            statusEl.textContent = "ならしているよ♪";
+
+            audio.play().catch(error => {
+                console.log("エラー:", error);
+                statusEl.textContent = "エラー";
+            });
+
+            // 10秒たったら自動で止まるタイマー
+            activeTimers[filename] = setTimeout(() => {
+                stopSound(filename, statusEl);
+            }, 10000);
+        }
+
+        // 音を直ちに止める関数
+        function stopSound(filename, statusEl) {
+            if (activeAudios[filename]) {
+                activeAudios[filename].pause();
+                activeAudios[filename].currentTime = 0;
+                delete activeAudios[filename];
+            }
+            if (activeTimers[filename]) {
+                clearTimeout(activeTimers[filename]);
+                delete activeTimers[filename];
+            }
+            if (statusEl) {
+                statusEl.textContent = "";
+            }
+        }
+    </script>
+
+</body>
+</html>
